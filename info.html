@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TransDirect</title>
+  <link rel="icon" href="/transdirect_icon.png" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f3f3fd;
+      background-image: 
+        radial-gradient(circle at center, rgba(255,255,255,0.1) 1px, transparent 1px),
+        linear-gradient(60deg, #efad5d, #5abfeb);
+      background-size: 50px 50px, cover;
+    }
+    .form-container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: #555;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      background-color: #0073e6;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #005bb5;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+      <h2>Let's Get to Know You</h2>
+      <form id="userForm">
+          <label for="name">What is your full name?</label>
+          <input type="text" id="name" name="name" placeholder="Eg: Aaron Jones Simmons">
+          <label for="location">Where are you located?</label>
+          <input type="text" id="location" name="location" placeholder="Suburb or Post Code">
+          <label for="email">What is your email address?</label>
+          <input type="text" id="email" name="email" placeholder="Eg: aaron.simmons@gmail.com">
+          <label for="phone">What is your phone number?</label>
+          <input type="text" id="phone" name="phone" placeholder="Enter your phone number">
+          <label for="experience">Tell us about your driving experience:</label>
+          <textarea id="experience" name="experience" rows="4" placeholder="Share your experience..."></textarea>
+          <button type="submit" id="continueButton">Continue</button>
+      </form>
+  </div>
+  <script>
+    const form = document.getElementById('userForm');
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const userData = {
+        name: document.getElementById('name').value,
+        location: document.getElementById('location').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        experience: document.getElementById('experience').value
+      };
+      for (const key in userData) {
+        localStorage.setItem(key, userData[key]);
+      }
+      window.location.href = '/loading.html';
+    });
+  </script>
+</body>
+</html>
